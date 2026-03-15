@@ -314,12 +314,30 @@
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ action:'verify_otp', email:currentEmail, otp:otp, timestamp:new Date().toISOString() })
     })
-    .catch(function(e){ console.warn('Webhook error:',e); })
-    .finally(function(){
+    .then(function(res){ return res.json(); })
+    .then(function(data){
       setLoading('otpBtn', false);
-      clearInterval(resendInterval);
-      document.getElementById('verifiedEmail').textContent = currentEmail;
-      showStep('stepSuccess');
+      if (data && data.success === true) {
+        clearInterval(resendInterval);
+        document.getElementById('verifiedEmail').textContent = currentEmail;
+        showStep('stepSuccess');
+      } else {
+        err.textContent = 'Kode OTP salah atau sudah kadaluarsa.';
+        err.classList.add('show');
+        document.querySelectorAll('.otp-box').forEach(function(b){
+          b.value = ''; b.classList.remove('filled','shake'); void b.offsetWidth; b.classList.add('shake');
+        });
+        document.getElementById('otp0').focus();
+      }
+    })
+    .catch(function(){
+      setLoading('otpBtn', false);
+      err.textContent = 'Kode OTP salah atau sudah kadaluarsa.';
+      err.classList.add('show');
+      document.querySelectorAll('.otp-box').forEach(function(b){
+        b.value = ''; b.classList.remove('filled','shake'); void b.offsetWidth; b.classList.add('shake');
+      });
+      document.getElementById('otp0').focus();
     });
   }
 
